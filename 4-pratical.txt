@@ -1,0 +1,57 @@
+4.Write a PL/SQL procedure using cursor that will merge the data available in newly created table
+N_RollCall with the data available in the O_RollCall. If the data in the first table already exists in
+the second table then that data should be skipped.
+CREATE TABLE O_RollCall (
+    rollNo INT PRIMARY KEY,
+    Name VARCHAR(255)
+);
+
+INSERT INTO O_RollCall VALUES
+(1, "PRATIK"),
+(2, "RAHUL");
+
+SELECT * FROM O_RollCall;
+
+CREATE TABLE N_RollCall (
+    rollNo INT PRIMARY KEY,
+    Name VARCHAR(255)
+);
+
+-- Insert some data into N_RollCall
+INSERT INTO N_RollCall VALUES
+(2, "RAHUL"), -- Duplicate
+(3, "SNEHA"), -- New entry
+(4, "OMKAR"); -- New entry
+
+SELECT * FROM N_RollCall;
+
+DELIMITER //
+
+CREATE PROCEDURE proc_Skip()
+BEGIN
+    DECLARE v_roll INT;
+    DECLARE v_name VARCHAR(255);
+    DECLARE done INT DEFAULT 0;
+    DECLARE c1 CURSOR FOR SELECT rollNo, Name FROM N_RollCall;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN c1;
+    read_details: LOOP
+        FETCH c1 INTO v_roll, v_name;
+        IF done = 1 THEN
+            LEAVE read_details;
+        END IF;
+
+        -- Check for duplicate before inserting
+        IF NOT EXISTS (SELECT 1 FROM O_RollCall WHERE rollNo = v_roll) THEN
+            INSERT INTO O_RollCall VALUES (v_roll, v_name);
+        END IF;
+    END LOOP read_details;
+
+    CLOSE c1;
+END;
+//
+
+DELIMITER ;
+
+CALL proc_Skip();

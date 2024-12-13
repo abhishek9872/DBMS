@@ -1,0 +1,48 @@
+2.Write a Procedure code using cursor that will create the list of customer’s name from Customer
+table.
+
+CREATE DATABASE CustomerDBInfo;
+USE CustomerDBInfo;
+
+CREATE TABLE customerinfo (
+    c_id INT PRIMARY KEY,
+    c_name VARCHAR(255)
+);
+
+INSERT INTO customerinfo VALUES
+(1, "PRATIK"),
+(2, "RAHUL");
+
+SELECT * FROM customerinfo;
+
+CREATE TABLE cust_list (
+    c_name VARCHAR(255)
+);
+
+DELIMITER //
+
+CREATE PROCEDURE proc_details()
+BEGIN
+    DECLARE v_name VARCHAR(255);
+    DECLARE done INT DEFAULT 0;
+    DECLARE c1 CURSOR FOR SELECT c_name FROM customerinfo;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN c1;
+    read_name: LOOP
+        FETCH c1 INTO v_name;
+        IF done = 1 THEN
+            LEAVE read_name;
+        END IF;
+        INSERT INTO cust_list VALUES (v_name);
+    END LOOP read_name;
+
+    CLOSE c1;
+END;
+//
+
+DELIMITER ;
+
+CALL proc_details();
+
+SELECT * FROM cust_list;

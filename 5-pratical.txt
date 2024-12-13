@@ -1,0 +1,58 @@
+5.Write a Stored Procedure namely proc_Grade for the categorization of student. If marks scored by
+students in examination is &lt;=1500 and marks&gt;=990 then student will be placed in distinction
+category if marks scored are between 989 and900 category is first class, if marks 899 and 825
+category is Higher Second Class Write a PL/SQL block for using procedure created with above
+requirement. Stud_Marks(Rollno,name, total_marks) Result(Roll,Name, Class)
+
+CREATE DATABASE student_Result;
+USE student_Result;
+
+CREATE TABLE Stud_Marks (
+    Rollno INT PRIMARY KEY,
+    Name VARCHAR(255),
+    total_marks INT
+);
+
+INSERT INTO Stud_Marks VALUES
+    (101, "PRATIK", 1499),
+    (102, "PRIYA", 989),
+    (103, "MANOJ", 921);
+
+CREATE TABLE Result (
+    roll INT PRIMARY KEY,
+    Name VARCHAR(255),
+    class VARCHAR(255)
+);
+
+DELIMITER //
+CREATE PROCEDURE proc_Grade()
+BEGIN
+    DECLARE v_Roll INT;
+    DECLARE v_name VARCHAR(255);
+    DECLARE v_marks INT;
+    DECLARE done INT DEFAULT 0;
+    DECLARE c1 CURSOR FOR SELECT Rollno, name, total_marks FROM Stud_Marks;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN c1;
+    read_grade: LOOP
+        FETCH c1 INTO v_Roll, v_name, v_marks;
+        IF done = 1 THEN
+            LEAVE read_grade;
+        END IF;
+
+        IF v_marks BETWEEN 990 AND 1500 THEN
+            INSERT INTO Result VALUES(v_Roll, v_name, "Destination");
+        ELSEIF v_marks BETWEEN 900 AND 989 THEN
+            INSERT INTO Result VALUES(v_Roll, v_name, "First Class");
+        ELSEIF v_marks BETWEEN 825 AND 899 THEN
+            INSERT INTO Result VALUES(v_Roll, v_name, "Higher Second Class");
+        END IF;
+    END LOOP read_grade;
+    CLOSE c1;
+END;
+//
+DELIMITER ;
+
+CALL proc_Grade();
+SELECT * FROM Result;
